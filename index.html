@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xeno Macro Tutor 🎓</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0b0f; --surface:#111318; --surface2:#181b23; --border:#23273a;
+  --accent:#f5a623; --green:#22c55e; --red:#ef4444; --blue:#3b82f6;
+  --text:#e8eaf0; --muted:#6b7280;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;}
+.logo span{color:var(--accent);}
+.hdr-right{display:flex;align-items:center;gap:10px;}
+.lec-count{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 12px;font-size:12px;color:var(--muted);}
+.lec-count b{color:var(--accent);}
+.admin-badge{display:none;align-items:center;gap:6px;background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.4);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--accent);font-weight:600;}
+.admin-badge button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;}
+.admin-badge button:hover{color:var(--red);}
+.lock-btn{display:flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--muted);cursor:pointer;transition:all .2s;}
+.lock-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+.app{display:flex;flex:1;overflow:hidden;}
+
+.sidebar{width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;}
+.tabs{display:flex;border-bottom:1px solid var(--border);}
+.tab{flex:1;padding:11px;text-align:center;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;letter-spacing:.5px;text-transform:uppercase;transition:all .2s;border-bottom:2px solid transparent;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(245,166,35,.04);}
+
+.panel{display:none;flex-direction:column;flex:1;overflow:hidden;}
+.panel.active{display:flex;}
+
+.add-inner{padding:14px;display:flex;flex-direction:column;gap:11px;flex:1;overflow-y:auto;}
+label{font-size:11px;color:var(--muted);font-weight:500;display:block;margin-bottom:4px;}
+input[type="text"],input[type="number"],input[type="password"],textarea{
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;
+  padding:9px 11px;width:100%;outline:none;transition:border-color .2s;
+}
+input:focus,textarea:focus{border-color:var(--accent);}
+textarea{resize:vertical;min-height:120px;line-height:1.5;}
+.btn{padding:9px 14px;border-radius:8px;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;transition:all .2s;width:100%;}
+.btn-primary{background:var(--accent);color:#000;}
+.btn-primary:hover:not(:disabled){opacity:.88;transform:translateY(-1px);}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;}
+.btn-ghost{background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--red);color:var(--red);}
+
+.lec-list{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:7px;}
+.lec-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;transition:all .2s;}
+.lec-card:hover{border-color:rgba(245,166,35,.4);}
+.lec-title{font-size:13px;font-weight:600;margin-bottom:4px;}
+.lec-meta{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;}
+.del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 3px;transition:color .2s;}
+.del-btn:hover{color:var(--red);}
+.badge{background:var(--accent);color:#000;border-radius:5px;font-size:10px;font-weight:700;padding:1px 6px;font-family:'JetBrains Mono',monospace;}
+.empty{text-align:center;padding:28px 14px;color:var(--muted);font-size:13px;line-height:1.6;}
+.empty .ico{font-size:28px;margin-bottom:8px;}
+.stu-hdr{padding:14px 14px 8px;font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.ctx-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 18px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.ctx-pill{background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.3);color:var(--accent);border-radius:20px;padding:2px 9px;font-size:11px;font-weight:600;}
+
+.messages{flex:1;overflow-y:auto;padding:20px 18px;display:flex;flex-direction:column;gap:18px;scroll-behavior:smooth;}
+.message{display:flex;gap:10px;max-width:88%;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.message.user{margin-left:auto;flex-direction:row-reverse;}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.av.sir{background:linear-gradient(135deg,#f5a623,#e05c2a);}
+.av.user{background:linear-gradient(135deg,#3b82f6,#7c3aed);}
+.bubble{padding:12px 15px;border-radius:11px;font-size:14px;line-height:1.7;}
+.bubble.sir{background:var(--surface);border:1px solid var(--border);border-top-left-radius:3px;}
+.bubble.user{background:linear-gradient(135deg,#1d4ed8,#1e3a8a);border-top-right-radius:3px;color:#fff;}
+.bubble strong{color:var(--accent);}
+.bubble p{margin-bottom:8px;}.bubble p:last-child{margin-bottom:0;}
+.bubble ul{padding-left:18px;margin:6px 0;}
+.bubble li{margin-bottom:4px;}
+.typing{display:flex;gap:4px;align-items:center;}
+.dot{width:7px;height:7px;background:var(--accent);border-radius:50%;animation:bounce 1.2s infinite;}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
+
+.welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:32px;}
+.welcome h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--accent);}
+.welcome p{color:var(--muted);font-size:13px;line-height:1.6;max-width:360px;}
+.steps{text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;max-width:360px;width:100%;}
+.step{display:flex;gap:8px;font-size:13px;color:var(--muted);margin-bottom:7px;}
+.step:last-child{margin-bottom:0}
+.sn{color:var(--accent);font-weight:700;flex-shrink:0;}
+
+.input-bar{background:var(--surface);border-top:1px solid var(--border);padding:10px 16px;display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.iw{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:24px;display:flex;align-items:center;padding:10px 16px;gap:6px;transition:border-color .2s;}
+.iw:focus-within{border-color:var(--accent);}
+#userInput{flex:1;background:transparent;border:none;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;resize:none;outline:none;max-height:80px;line-height:1.5;height:22px;overflow-y:auto;}
+.send-btn{background:var(--accent);color:#000;border:none;border-radius:8px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s;flex-shrink:0;}
+.send-btn:hover{opacity:.85;transform:scale(1.05);}
+.send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+
+.img-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s;flex-shrink:0;}
+.img-btn:hover{border-color:var(--accent);transform:scale(1.05);}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100;}
+.ov-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 24px;width:310px;display:flex;flex-direction:column;gap:14px;}
+.ov-card h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+.ov-card p{font-size:13px;color:var(--muted);}
+.err{color:var(--red);font-size:12px;display:none;text-align:center;}
+.ov-btns{display:flex;gap:8px;}
+.ov-btns .btn{flex:1;}
+.btn-cancel{background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
+
+.toast{position:fixed;bottom:70px;right:18px;background:var(--green);color:#000;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;animation:slideUp .3s;z-index:200;max-width:300px;}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
+</style>
+</head>
+<body>
+
+<!-- Admin Login Overlay -->
+<div class="overlay" id="loginOverlay">
+  <div class="ov-card">
+    <h3>🔐 Admin Login</h3>
+    <p>Sirf Sohail content add/delete kar sakta hai. Password daalo:</p>
+    <input type="password" id="pwdInput" placeholder="Password..." onkeydown="if(event.key==='Enter')doLogin()">
+    <p class="err" id="pwdErr">❌ Galat password yaar!</p>
+    <div class="ov-btns">
+      <button class="btn btn-cancel" onclick="closeLogin()">Cancel</button>
+      <button class="btn btn-primary" onclick="doLogin()">Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="logo">Xeno <span>Sir</span> AI 🎓</div>
+  <div class="hdr-right">
+    <span class="lec-count"><b id="lecCount">0</b> Sessions</span>
+    <div class="admin-badge" id="adminBadge">🛡️ Admin <button onclick="doLogout()">✕</button></div>
+    <button class="lock-btn" id="lockBtn" onclick="openLogin()">🔒 Admin</button>
+  </div>
+</header>
+
+<div class="app">
+  <div class="sidebar">
+
+    <!-- Admin sidebar -->
+    <div id="adminSide" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('add')">➕ Add</div>
+        <div class="tab" onclick="switchTab('list')">📚 List</div>
+      </div>
+      <div class="panel active" id="addPanel">
+        <div class="add-inner">
+          <div><label>Session Number</label><input type="number" id="lecNum" placeholder="e.g. 8" min="1"></div>
+          <div><label>Session Title (optional)</label><input type="text" id="lecTitle" placeholder="e.g. Fed Rate Cycles & Carry Trade"></div>
+          <div style="flex:1;display:flex;flex-direction:column;">
+            <label>Session Content 👇</label>
+            <textarea id="transcriptBox" placeholder="Sir ne jo padhaya woh yahan paste karo..." style="flex:1;min-height:160px;"></textarea>
+          </div>
+          <button class="btn btn-primary" id="saveBtn" onclick="saveLecture()">☁️ Save to Cloud</button>
+          <button class="btn btn-ghost" onclick="clearAll()">🗑️ Clear All Sessions</button>
+        </div>
+      </div>
+      <div class="panel" id="listPanel">
+        <div class="lec-list" id="adminList"></div>
+      </div>
+    </div>
+
+    <!-- Student sidebar -->
+    <div id="stuSide" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="stu-hdr">📚 Available Sessions</div>
+      <div class="lec-list" id="stuList"></div>
+    </div>
+
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-area">
+    <div class="ctx-bar">🎯 <span id="ctxInfo" style="color:var(--muted)">Connecting...</span></div>
+    <div id="welcomeScreen" class="welcome">
+      <div style="font-size:44px">🧑‍🏫</div>
+      <h2>Xeno Sir AI — Seedha Sir Se Seekho</h2>
+      <p>Admin sessions upload karega — phir seedha sir se koi bhi doubt puchho! Hinglish ya English — dono mein baat kar sakte ho!</p>
+      <div class="steps">
+        <div class="step"><span class="sn">1.</span><span>Admin content cloud pe upload karega</span></div>
+        <div class="step"><span class="sn">2.</span><span>Automatically tumhare phone pe aa jaayega ✨</span></div>
+        <div class="step"><span class="sn">3.</span><span>Koi bhi concept ya doubt type karo — Hinglish ya English</span></div>
+        <div class="step"><span class="sn">4.</span><span>Deep explanations + AI aapko bhi test karega 🔥</span></div>
+      </div>
+    </div>
+    <div id="msgs" class="messages" style="display:none;"></div>
+
+    <!-- Image preview bar -->
+    <div id="imgPreviewBar" style="display:none; background:var(--surface); border-top:1px solid var(--border); padding:8px 18px; gap:8px; align-items:center; flex-shrink:0;">
+      <div style="position:relative; display:inline-block;">
+        <img id="imgPreview" style="height:60px; border-radius:8px; border:1px solid var(--border); object-fit:cover;" />
+        <button onclick="clearImage()" style="position:absolute;top:-6px;right:-6px;background:var(--red);border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+      <span style="font-size:12px; color:var(--muted);">Screenshot attached — ask your question below</span>
+    </div>
+
+    <div class="input-bar">
+      <!-- Hidden file input -->
+      <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
+
+      <!-- Image upload button -->
+      <button class="img-btn" onclick="document.getElementById('imgInput').click()" title="Upload screenshot">
+        📎
+      </button>
+
+      <div class="iw">
+        <textarea id="userInput" rows="1"
+          placeholder="Type your question — Hinglish ya English, dono chalte hain..."
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"
+          oninput="this.style.height='22px';this.style.height=Math.min(this.scrollHeight,80)+'px'">
+        </textarea>
+      </div>
+      <button class="send-btn" id="sendBtn" onclick="sendMsg()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, set, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const FB = {
+  apiKey: "AIzaSyBMAgtO1lAWqHoeJG-fseErIZO9C_Kwbeg",
+  authDomain: "xeno-sir.firebaseapp.com",
+  databaseURL: "https://xeno-sir-default-rtdb.firebaseio.com",
+  projectId: "xeno-sir",
+  storageBucket: "xeno-sir.firebasestorage.app",
+  messagingSenderId: "541580310490",
+  appId: "1:541580310490:web:003408a8fc8663535ef2e3",
+  measurementId: "G-58QTX9ZYZ5"
+};
+
+const ADMIN_PASS = "macrolegendxeno";
+
+// ── Dashboard Knowledge Base ──────────────────────────────
+// This is the complete knowledge from the Federal Reserve Rate Dashboard
+// that Sir used to teach — embedded so AI knows it deeply
+const DASHBOARD_KNOWLEDGE = `
+=== FEDERAL RESERVE RATE DASHBOARD — COMPLETE KNOWLEDGE BASE ===
+
+This dashboard was used by Sir during lectures to explain macroeconomics concepts visually.
+
+── FED FUNDS RATE HISTORY ──
+Key rate cycles the dashboard tracks:
+• 2015-2018 Hiking Cycle: Fed raised rates from 0.25% → 2.50% (9 hikes)
+• 2019: Three cuts (insurance cuts), brought to 1.75%
+• 2020 COVID Emergency: Slashed to 0-0.25% in March 2020 (two emergency cuts)
+• 2022-2023 Aggressive Hiking: Fastest hiking cycle in 40 years — from 0.25% → 5.50% (11 hikes). Peak rate: 5.25-5.50%
+• 2024: First cut in Sep 2024 (-25bps), then Nov (-25bps), Dec (-25bps). Rate: 4.25-4.50%
+• Current (2025): Fed on hold, watching inflation data
+
+── FOMC MEETING DECISIONS (Dashboard Table) ──
+The dashboard shows every FOMC decision:
+• HOLD = No change in rates (Fed watching data)
+• HIKE = Rate increase (fighting inflation, tightening monetary policy)
+• CUT = Rate decrease (stimulating economy, easing monetary policy)
+• Key insight: Fed decisions drive ALL asset classes — stocks, bonds, crypto, gold, dollar, oil
+
+── YIELD CURVE — 2Y vs 10Y Treasury ──
+Dashboard tracks the most important spread in macro:
+• Normal curve: 10Y yield > 2Y yield (positive spread) = healthy economy
+• Inverted curve: 2Y yield > 10Y yield (negative spread) = recession warning!
+• Flat curve: 2Y ≈ 10Y = transition/uncertainty
+
+Historical inversions shown in dashboard:
+• 2019 inversion → COVID recession 2020
+• 2022-2023 inversion (deepest since 1981) → markets feared recession
+• 2024: Curve began re-steepening (disinversion) as Fed cut rates
+
+How to read the dashboard spread:
+• Spread = 10Y yield minus 2Y yield
+• Example: 10Y = 4.50%, 2Y = 4.18% → Spread = +0.32% (normal, re-steepening)
+• Example: 10Y = 3.80%, 2Y = 4.90% → Spread = -1.10% (deeply inverted!)
+
+Trading signals from yield curve:
+• Inversion → Buy gold, sell bank stocks, reduce risk
+• Re-steepening → Buy bank stocks, commodities may rise, dollar weakens
+
+── REAL INTEREST RATES ──
+Dashboard formula: Real Rate = Nominal Fed Funds Rate - CPI Inflation
+
+Why real rates matter MORE than nominal:
+• Nominal rate 5% but inflation 8% → Real rate = -3% (STILL accommodative!)
+• Nominal rate 5% but inflation 2% → Real rate = +3% (VERY restrictive!)
+
+Real rate regimes shown in dashboard:
+• Deeply negative real rates (2021-2022): Fed kept rates near 0 while inflation surged → fueled asset bubbles
+• Rapidly positive real rates (2023): As Fed hiked AND inflation fell → crushed risk assets
+• Current: Real rates positive and restrictive → weighing on economy
+
+Asset class impact of real rates:
+• Real rates RISING → Gold falls (gold has no yield, loses to bonds), Dollar strengthens, Tech stocks fall
+• Real rates FALLING → Gold rises, Dollar weakens, Emerging markets rally, Crypto pumps
+
+── INTERMARKET CORRELATIONS (Dashboard Cards) ──
+
+1. US DOLLAR INDEX (DXY)
+• Rises when: Fed hikes, risk-off, global uncertainty
+• Falls when: Fed cuts, inflation expectations rise, emerging markets rally
+• Inverse relationship with: Gold, Oil (mostly), Emerging market currencies, Crypto
+
+2. GOLD (XAU/USD)
+• Safe haven + inflation hedge
+• Rises when: Real rates fall, dollar weakens, geopolitical risk, recession fears
+• Falls when: Real rates rise, dollar strengthens, risk-on environment
+• Dashboard correlation: Strong inverse with real rates (-0.85 approx)
+
+3. S&P 500 / EQUITIES
+• Loves: Low rates, falling inflation, earnings growth, Fed pivot (cutting cycle)
+• Hates: High real rates, recession, credit crunch, Fed hiking aggressively
+• Key level dashboard tracks: 200-day moving average as bull/bear line
+
+4. OIL (WTI/BRENT)
+• Rises when: Global growth strong, dollar weak, supply cuts (OPEC)
+• Falls when: Recession fears, dollar strong, demand destruction
+• Inflation link: Oil is a key input to CPI (especially core goods)
+
+5. BITCOIN/CRYPTO
+• Behaves like high-beta risk asset
+• Correlates with: Nasdaq (tech stocks), liquidity conditions
+• Pumps when: Real rates fall, dollar weak, liquidity expanding
+• Crashes when: Real rates surge, liquidity tightening, risk-off
+
+6. BONDS (Treasury Prices)
+• Bond prices INVERSE to yields (when yields go up, bond prices go down)
+• Fed hiking → yields rise → bond prices FALL
+• Fed cutting → yields fall → bond prices RISE
+• Long-duration bonds (30Y, 20Y) most sensitive to rate changes
+
+── MONETARY TRANSMISSION MECHANISM (Dashboard shows this) ──
+How Fed rate changes flow through economy:
+
+Fed Hikes Rates →
+→ Short-term borrowing costs rise (credit cards, car loans, mortgages)
+→ Banks tighten lending standards
+→ Business investment slows (capex falls)
+→ Consumer spending falls
+→ Unemployment rises (with lag of 12-18 months)
+→ Inflation cools (with lag of 18-24 months)
+
+Fed Cuts Rates →
+→ Borrowing becomes cheaper
+→ Mortgage rates fall → housing market revives
+→ Business borrowing increases → investment rises
+→ Consumer spending rises
+→ Economy accelerates
+→ Risk assets (stocks, crypto) rally
+
+── INFLATION MEASURES (Dashboard explains difference) ──
+CPI (Consumer Price Index):
+• Measured by Bureau of Labor Statistics (BLS)
+• Basket: Housing (35%), Transportation, Food, Medical
+• Shelter/rent has huge lag (6-18 months behind actual market rents)
+• Headline CPI includes food + energy
+• Core CPI excludes food + energy (less volatile, Fed prefers this)
+
+PCE (Personal Consumption Expenditures):
+• Measured by Bureau of Economic Analysis (BEA)
+• THE FED'S PREFERRED measure — Fed targets 2% PCE
+• Adjusts for substitution (if beef expensive, people buy chicken — CPI misses this)
+• Generally 0.2-0.5% LOWER than CPI
+
+Types of Inflation shown in dashboard:
+• Demand-pull: Too much money chasing too few goods (2021 stimulus inflation)
+• Cost-push: Supply shock raises production costs (oil crisis, COVID supply chains)
+• Built-in/Wage-price spiral: Workers demand higher wages → costs rise → more inflation
+
+── CARRY TRADE (Dashboard concept) ──
+Borrow in low-rate currency → Invest in high-rate currency
+
+Example shown in dashboard:
+• Borrow JPY at 0.1% interest (Bank of Japan ultra-low rates)
+• Convert to USD → Buy US Treasuries at 5.5%
+• Profit = 5.4% (the "carry")
+
+Risk: If JPY strengthens suddenly → carry trade UNWINDS → massive volatility
+2024 carry trade unwind: BOJ raised rates → JPY surged → global stocks crashed in August 2024
+
+── KEY MACRO RELATIONSHIPS DASHBOARD VISUALIZES ──
+1. Dollar UP → Gold DOWN, Oil DOWN, EM currencies DOWN
+2. Yields UP → Bond prices DOWN, Tech stocks DOWN, Gold DOWN
+3. Real rates UP → Gold DOWN, Dollar UP
+4. Yield curve inverts → Recession in 12-24 months (historically)
+5. Fed pivots to cuts → Risk assets RALLY (stocks, crypto, gold all up)
+6. Inflation beats expectations → Yields SURGE → Stocks FALL
+7. Jobs data strong → Fed stays hawkish → Dollar UP, Bonds DOWN
+
+=== END OF DASHBOARD KNOWLEDGE ===
+`;
+
+let db, lectures = [], chatHistory = [], isLoading = false, isAdmin = false;
+let pendingImageBase64 = null; // stores base64 of attached image
+
+// ── Image Upload ──────────────────────────────────────────
+window.handleImageUpload = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { toast('⚠️ Only images allowed!'); return; }
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    pendingImageBase64 = ev.target.result.split(',')[1]; // base64 only
+    document.getElementById('imgPreview').src = ev.target.result;
+    document.getElementById('imgPreviewBar').style.display = 'flex';
+    toast('📎 Screenshot attached! Now ask your question.');
+  };
+  reader.readAsDataURL(file);
+  e.target.value = ''; // reset input
+};
+
+window.clearImage = () => {
+  pendingImageBase64 = null;
+  document.getElementById('imgPreviewBar').style.display = 'none';
+  document.getElementById('imgPreview').src = '';
+};
+
+try {
+  const app = initializeApp(FB);
+  db = getDatabase(app);
+  startSync();
+} catch(e) {
+  document.getElementById('ctxInfo').innerHTML = `<span style="color:var(--red)">⚠️ Firebase error: ${e.message}</span>`;
+}
+
+function startSync() {
+  onValue(ref(db, 'lectures'), snap => {
+    const d = snap.val();
+    lectures = d ? Object.values(d).sort((a,b) => a.num - b.num) : [];
+    renderAll();
+    // Always show chat — dashboard knowledge is always available
+    document.getElementById('welcomeScreen').style.display = 'none';
+    document.getElementById('msgs').style.display = 'flex';
+    if (chatHistory.length === 0) greet();
+  }, err => {
+    document.getElementById('ctxInfo').innerHTML = `<span style="color:var(--red)">⚠️ ${err.message}</span>`;
+  });
+}
+
+function renderAll() {
+  document.getElementById('lecCount').textContent = lectures.length;
+  const info = document.getElementById('ctxInfo');
+  if (lectures.length === 0) {
+    info.innerHTML = `<span style="color:var(--muted)">No sessions loaded yet</span>`;
+  } else {
+    const nums = lectures.map(l => `S${l.num}`).join(', ');
+    info.innerHTML = `<span class="ctx-pill">🔥 Live</span> &nbsp;${nums} + Dashboard`;
+  }
+
+  const al = document.getElementById('adminList');
+  al.innerHTML = lectures.length === 0
+    ? `<div class="empty"><div class="ico">📂</div><p>No sessions yet — go to Add tab</p></div>`
+    : lectures.map(l => `
+        <div class="lec-card">
+          <div class="lec-title"><span class="badge">S${l.num}</span> &nbsp;${l.title}</div>
+          <div class="lec-meta">
+            <span>${l.addedAt} · ${(l.transcript.length/1000).toFixed(1)}k</span>
+            <button class="del-btn" data-num="${l.num}">✕</button>
+          </div>
+        </div>`).join('');
+  al.querySelectorAll('.del-btn').forEach(b =>
+    b.addEventListener('click', () => delLecture(+b.dataset.num))
+  );
+
+  const sl = document.getElementById('stuList');
+  sl.innerHTML = lectures.length === 0
+    ? `<div class="empty"><div class="ico">⏳</div><p>Admin ne abhi koi session nahi dala</p></div>`
+    : lectures.map(l => `
+        <div class="lec-card">
+          <div class="lec-title"><span class="badge">S${l.num}</span> &nbsp;${l.title}</div>
+          <div class="lec-meta"><span>${l.addedAt}</span></div>
+        </div>`).join('');
+}
+
+window.openLogin = () => {
+  document.getElementById('loginOverlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('pwdInput').focus(), 80);
+};
+window.closeLogin = () => {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('pwdInput').value = '';
+  document.getElementById('pwdErr').style.display = 'none';
+};
+window.doLogin = () => {
+  if (document.getElementById('pwdInput').value === ADMIN_PASS) {
+    isAdmin = true;
+    window.closeLogin();
+    document.getElementById('adminBadge').style.display = 'flex';
+    document.getElementById('lockBtn').style.display = 'none';
+    document.getElementById('adminSide').style.display = 'flex';
+    document.getElementById('stuSide').style.display = 'none';
+    toast('✅ Admin mode active! 🛡️');
+  } else {
+    document.getElementById('pwdErr').style.display = 'block';
+  }
+};
+window.doLogout = () => {
+  isAdmin = false;
+  document.getElementById('adminBadge').style.display = 'none';
+  document.getElementById('lockBtn').style.display = 'flex';
+  document.getElementById('adminSide').style.display = 'none';
+  document.getElementById('stuSide').style.display = 'flex';
+  toast('👋 Admin logout ho gaya');
+};
+
+window.saveLecture = async () => {
+  if (!isAdmin || !db) return;
+  const num = parseInt(document.getElementById('lecNum').value);
+  const title = document.getElementById('lecTitle').value.trim();
+  const content = document.getElementById('transcriptBox').value.trim();
+  if (!num || !content) { toast('⚠️ Session number aur content chahiye!'); return; }
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = '⏳ Saving...';
+  try {
+    await set(ref(db, `lectures/lec_${num}`), {
+      num, title: title || `Session ${num}`,
+      transcript: content,
+      addedAt: new Date().toLocaleDateString('en-IN')
+    });
+    document.getElementById('lecNum').value = '';
+    document.getElementById('lecTitle').value = '';
+    document.getElementById('transcriptBox').value = '';
+    toast(`✅ Session ${num} saved! Sabko dikhe ga 🚀`);
+  } catch(e) { toast('❌ Save failed: ' + e.message); }
+  btn.disabled = false; btn.textContent = '☁️ Save to Cloud';
+};
+
+async function delLecture(num) {
+  if (!isAdmin) return;
+  if (!confirm(`Session ${num} delete karna hai?`)) return;
+  try { await remove(ref(db, `lectures/lec_${num}`)); toast(`🗑️ Session ${num} deleted`); }
+  catch(e) { toast('❌ Error: ' + e.message); }
+}
+
+window.clearAll = async () => {
+  if (!isAdmin) return;
+  if (!confirm('ALL sessions delete karne hain??')) return;
+  try { await remove(ref(db, 'lectures')); chatHistory = []; toast('🗑️ Sab clear!'); }
+  catch(e) { toast('❌ Error: ' + e.message); }
+};
+
+window.switchTab = (tab) => {
+  document.querySelectorAll('.tab').forEach((t,i) =>
+    t.classList.toggle('active', (tab==='add'&&i===0)||(tab==='list'&&i===1))
+  );
+  document.getElementById('addPanel').classList.toggle('active', tab==='add');
+  document.getElementById('listPanel').classList.toggle('active', tab==='list');
+};
+
+function greet() {
+  if (lectures.length > 0) {
+    const list = lectures.map(l => `S${l.num}: ${l.title}`).join(', ');
+    addMsg('sir', `Haan haan, aa gaye! 😄\n\nMujhe **${lectures.length} session(s)** yaad hain: ${list}\n\n**Plus** — Sir ka poora Federal Reserve Dashboard bhi mujhe pata hai! 📊\n\nPuchho kuch bhi — Hinglish mein ya English mein! Koi bhi concept, koi bhi doubt — main tod ke samjhaunga! 🎯`);
+  } else {
+    addMsg('sir', `Haan haan, aa gaye! 😄\n\nAbhi koi class sessions nahi hain — lekin **Sir ka poora Federal Reserve Dashboard** mujhe pata hai! 📊\n\n**Main explain kar sakta hun:**\n- Fed Funds Rate & FOMC decisions\n- Yield Curve (2Y vs 10Y)\n- Real Interest Rates\n- Gold, Dollar, Oil, Crypto correlations\n- Carry Trade\n- Inflation (CPI vs PCE, demand-pull vs cost-push)\n- Monetary Transmission Mechanism\n\nPuchho kuch bhi — Hinglish ya English dono chalte hain! 🎯`);
+  }
+}
+
+window.sendMsg = async () => {
+  const inp = document.getElementById('userInput');
+  const txt = inp.value.trim();
+  if (!txt && !pendingImageBase64) return;
+  if (isLoading) return;
+
+  const msgText = txt || '(Screenshot attached — please analyze)';
+  const hasImage = !!pendingImageBase64;
+  const imageData = pendingImageBase64;
+
+  inp.value = ''; inp.style.height = '22px';
+
+  // Show user message with image preview if attached
+  if (hasImage) {
+    addMsgWithImage('user', msgText, document.getElementById('imgPreview').src);
+  } else {
+    addMsg('user', msgText);
+  }
+
+  // Clear image
+  if (hasImage) window.clearImage();
+
+  isLoading = true;
+  document.getElementById('sendBtn').disabled = true;
+  const tid = showTyping();
+
+  try {
+    const reply = await callClaude(msgText, hasImage ? imageData : null);
+    rmTyping(tid);
+    addMsg('sir', reply);
+    chatHistory.push({role:'user', content: msgText}, {role:'assistant', content: reply});
+  } catch(e) {
+    rmTyping(tid);
+    addMsg('sir', `Yaar kuch gadbad ho gayi: ${e.message}. Dobara try karo!`);
+  }
+  isLoading = false;
+  document.getElementById('sendBtn').disabled = false;
+};
+
+async function callClaude(msg, imageBase64 = null) {
+  const sessionContent = lectures.map(l =>
+    `=== SESSION ${l.num}: ${l.title} ===\n${l.transcript}`
+  ).join('\n\n');
+
+  const sys = `You are an expert macroeconomics teacher from the Xeno Mentorship Program. You taught using a Federal Reserve Rate Dashboard and live class sessions.
+
+YOUR COMPLETE KNOWLEDGE BASE HAS TWO PARTS:
+1. DASHBOARD KNOWLEDGE (always available — Fed rates, yield curve, intermarket correlations, inflation, carry trade, etc.)
+2. CLASS SESSION CONTENT (what Sir taught in each session)
+
+${DASHBOARD_KNOWLEDGE}
+
+CLASS SESSION CONTENT:
+${sessionContent || "No sessions loaded yet — but you still have full dashboard knowledge above."}
+
+═══════════════════════════════════════════════════════
+TEACHING STYLE — FOLLOW THIS EXACTLY:
+═══════════════════════════════════════════════════════
+
+LANGUAGE:
+- DETECT what language the student uses — if Hinglish → reply in Hinglish. If English → reply in English. If mixed → match their mix.
+- Hinglish style: warm, casual, "yaar", desi analogies (chai tapri, cricket, IPL, Maggi, dabba, shaadi, auto-rickshaw)
+- English style: clear, engaging, use real-world finance examples (stock market, Bloomberg, trading desk)
+- ALWAYS use emojis 📈💹🎯📊
+
+IMAGE ANALYSIS:
+- If student shares a screenshot/chart/image → analyze it deeply in context of macroeconomics
+- Explain what the chart shows, what it means for markets, trading implications
+- Connect it to session content and dashboard knowledge
+
+EXPLANATION DEPTH — ZERO DOUBTS POLICY:
+When explaining ANY concept (even if asked simply):
+1. **One-line simple definition** — what it IS in plain language
+2. **Why it matters** — real-world significance
+3. **Desi/relatable example** — something they can picture
+4. **Real market example** — actual data/event (2022 Fed hikes, COVID crash, etc.)
+5. **Trading impact** — what does a trader DO with this information? What to buy/sell?
+6. **Common misconception** — what people get WRONG about this
+7. **Quick check question** — ask student 1 question to test understanding
+
+WORD DEFINITIONS:
+If student asks about ANY macro term (cost-push inflation, yield curve, carry trade, PCE, real rates, etc.):
+- First give the crystal clear definition
+- Then explain using dashboard data as reference
+- Then give 3 progressively harder examples
+- Connect to TRADING action
+
+TWISTED/EDGE CASE QUESTIONS:
+When student asks tricky or edge-case questions:
+- Acknowledge the twist
+- Break down why it's tricky
+- Explain the nuance clearly
+- Give real historical example where this edge case happened
+
+NEVER:
+- Say "transcript" — say "session content", "class notes", "what Sir taught"
+- Give lazy one-line answers
+- Skip the trading connection
+- Ignore what language the student is using
+
+CONTENT RULES:
+1. Prioritize session content for session-specific questions
+2. Use dashboard knowledge freely for any macro/finance concept
+3. If TRULY not covered anywhere → explain using dashboard knowledge anyway
+4. For basic term definitions — always explain even if not in sessions
+5. ALWAYS end important explanations with a follow-up question`;
+
+  // Build user message — with or without image
+  let userContent;
+  if (imageBase64) {
+    userContent = [
+      {
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: 'image/jpeg',
+          data: imageBase64
+        }
+      },
+      { type: 'text', text: msg }
+    ];
+  } else {
+    userContent = msg;
+  }
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1500,
+      system: sys,
+      messages: [...chatHistory, {role:'user', content: userContent}]
+    })
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(()=>({}));
+    throw new Error(e.error?.message || `API ${res.status}`);
+  }
+  const d = await res.json();
+  return d.content.map(b => b.text||'').join('');
+}
+
+function addMsg(role, text) {
+  const c = document.getElementById('msgs');
+  const isUser = role === 'user';
+  const d = document.createElement('div');
+  d.className = `message ${isUser?'user':'sir'}`;
+  d.innerHTML = `<div class="av ${isUser?'user':'sir'}">${isUser?'🧑':'🎓'}</div><div class="bubble ${isUser?'user':'sir'}">${fmt(text)}</div>`;
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+
+function addMsgWithImage(role, text, imgSrc) {
+  const c = document.getElementById('msgs');
+  const isUser = role === 'user';
+  const d = document.createElement('div');
+  d.className = `message ${isUser?'user':'sir'}`;
+  d.innerHTML = `
+    <div class="av ${isUser?'user':'sir'}">${isUser?'🧑':'🎓'}</div>
+    <div class="bubble ${isUser?'user':'sir'}">
+      <img src="${imgSrc}" style="max-width:200px;max-height:150px;border-radius:8px;margin-bottom:8px;display:block;border:1px solid rgba(255,255,255,0.1);" />
+      ${fmt(text)}
+    </div>`;
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+
+function fmt(t) {
+  t = t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  t = t.replace(/\*(.*?)\*/g,'<em>$1</em>');
+  t = t.replace(/\n\n/g,'</p><p>');
+  t = t.replace(/\n/g,'<br>');
+  t = t.replace(/<br>[-•] (.*?)(?=<br>|<\/p>|$)/g,'<br>• $1');
+  return `<p>${t}</p>`;
+}
+
+function showTyping() {
+  const id = 't'+Date.now(), c = document.getElementById('msgs');
+  const d = document.createElement('div'); d.className='message sir'; d.id=id;
+  d.innerHTML=`<div class="av sir">🎓</div><div class="bubble sir"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+  c.appendChild(d); c.scrollTop=c.scrollHeight; return id;
+}
+function rmTyping(id) { document.getElementById(id)?.remove(); }
+
+function toast(msg) {
+  const t = document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(), 3000);
+}
+</script>
+</body>
+</html>
